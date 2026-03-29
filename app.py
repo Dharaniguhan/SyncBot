@@ -21,7 +21,7 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # 3. Handle user input
-if prompt := st.chat_input("Ask me about phase-locked loops, frame sync, etc..."):
+if prompt := st.chat_input("Ask me about synchronization in digital communication..."):
     
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -32,12 +32,16 @@ if prompt := st.chat_input("Ask me about phase-locked loops, frame sync, etc..."
     with st.chat_message("assistant"):
         history_text = "\n".join([f'{m["role"].upper()}: {m["content"]}' for m in st.session_state.messages])
 
-        # Define the strict rules for the bot
-        syncbot_persona = """You are SyncBot, an expert professor and assistant specializing strictly in Synchronization in Digital Communication. 
+# Define the strict rules for the bot
+        syncbot_persona = """You are SyncBot, a friendly and helpful assistant specializing strictly in Synchronization in Digital Communication. 
         Your primary goals are to teach, explain, and quiz users on topics like Phase-Locked Loops (PLL), Frame Synchronization, Carrier Synchronization, Symbol Timing Recovery, etc.
-        Keep your answers clear, accurate, and structured.
-        CRITICAL RULE: If a user asks a question completely unrelated to electronics, telecommunications, or synchronization, you MUST politely decline to answer and steer the conversation back to your area of expertise."""
-
+        
+        CRITICAL INSTRUCTION ON TONE AND LENGTH: 
+        1. Keep your answers SHORT, concise, and punchy. Avoid giant walls of text.
+        2. Keep the language SIMPLE. Break down complex math or theories into plain English. 
+        3. Use real-world analogies whenever possible. Imagine you are explaining this to a second-year ECE student who is hearing about these concepts for the very first time.
+        
+        CRITICAL RULE ON TOPIC: If a user asks a question completely unrelated to electronics, telecommunications, or synchronization, you MUST politely decline to answer and steer the conversation back to your area of expertise."""
         # Call the API with the system instructions attached
         response = client.models.generate_content(
             model='gemini-2.5-flash',
