@@ -20,13 +20,6 @@ for message in st.session_state.messages:
     with st.chat_message(ui_role):
         st.markdown(message["content"])
 
-MAX_MESSAGES_PER_SESSION = 20  # adjust as needed
-
-if st.session_state.get("user_msg_count", 0) >= MAX_MESSAGES_PER_SESSION:
-    st.warning("⚠️ You've reached the session limit. Please refresh to start a new session.")
-    st.stop()
-
-
 # 3. Handle user input
 if prompt := st.chat_input("Ask me about synchronization in digital communication..."):
     
@@ -35,39 +28,28 @@ if prompt := st.chat_input("Ask me about synchronization in digital communicatio
     
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-# 4. Let the AI generate a real response
-with st.chat_message("assistant"):
-    history_text = "\n".join([f'{m["role"].upper()}: {m["content"]}' for m in st.session_state.messages])
+    # 4. Let the AI generate a real response
+    with st.chat_message("assistant"):
+        history_text = "\n".join([f'{m["role"].upper()}: {m["content"]}' for m in st.session_state.messages])
 
 # Define the strict rules for the bot
-    syncbot_persona = """You are SyncBot, a friendly and helpful assistant specializing strictly in Synchronization in Digital Communication. 
-    Your primary goals are to teach, explain, and quiz users on topics like Phase-Locked Loops (PLL), Frame Synchronization, Carrier Synchronization, Symbol Timing Recovery, etc.
-    
-    CRITICAL INSTRUCTION ON TONE AND LENGTH: 
-    1. Keep your answers SHORT, concise, and punchy. Avoid giant walls of text.
-    2. Keep the language SIMPLE. Break down complex math or theories into plain English. 
-    3. Use real-world analogies whenever possible. Imagine you are explaining this to a second-year ECE student who is hearing about these concepts for the very first time.
-    
-    CRITICAL RULE ON TOPIC: If a user asks a question completely unrelated to electronics, telecommunications, or synchronization, you MUST politely decline to answer and steer the conversation back to your area of expertise."""
-    # Call the API with the system instructions attached
-
-
-    try:
-        response_stream = client.models.generate_content_stream(
+        syncbot_persona = """You are SyncBot, a friendly and helpful assistant specializing strictly in Synchronization in Digital Communication. 
+        Your primary goals are to teach, explain, and quiz users on topics like Phase-Locked Loops (PLL), Frame Synchronization, Carrier Synchronization, Symbol Timing Recovery, etc.
+        
+        CRITICAL INSTRUCTION ON TONE AND LENGTH: 
+        1. Keep your answers SHORT, concise, and punchy. Avoid giant walls of text.
+        2. Keep the language SIMPLE. Break down complex math or theories into plain English. 
+        3. Use real-world analogies whenever possible. Imagine you are explaining this to a second-year ECE student who is hearing about these concepts for the very first time.
+        
+        CRITICAL RULE ON TOPIC: If a user asks a question completely unrelated to electronics, telecommunications, or synchronization, you MUST politely decline to answer and steer the conversation back to your area of expertise."""
+        # Call the API with the system instructions attached
+        response = client.models.generate_content(
             model='gemini-2.5-flash',
-            contents=history,
-            config=types.GenerateContentConfig(system_instruction=syncbot_persona)
+            contents=history_text,
+            config=types.GenerateContentConfig(
+                system_instruction=syncbot_persona,
+            )
         )
-
-        # Streamlit's write_stream handles it natively
-        full_response = st.write_stream(
-            chunk.text for chunk in response_stream if chunk.text
-        )
-    except Exception as e:
-        st.error("⚠️ Something went wrong. Please try again in a moment.")
-        st.stop()
-
-
         st.markdown(response.text)
-            
-        st.session_state.messages.append({"role": "model", "content": response.text})
+        
+    st.session_state.messages.append({"role": "model", "content": response.text})
